@@ -7,7 +7,7 @@ module LiveMentorTechTest
 
     def initialize(doc)
       @doc = doc
-      @it = 0
+      @it = -1
     end
 
     def headers
@@ -41,11 +41,15 @@ module LiveMentorTechTest
 
     def read_line
       if @doc.class == Array
-        return dig_line(@doc[@it])
         @it += 1
+        return dig_line(@doc[@it])
       else
         return dig_line(@doc)
       end
+    end
+
+    def rewind
+      @it = -1
     end
 
     private
@@ -70,7 +74,9 @@ module LiveMentorTechTest
 
       self.headers.map do |header|
         nested_path = header.split(".")
-        hash.dig(*nested_path)
+        value = hash.dig(*nested_path)
+        value = value.join(",") unless value.class != Array
+        value
       end
     end
 
