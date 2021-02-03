@@ -48,10 +48,28 @@ EOS
   end
 
   it "parses a JSON file" do
-    translator = LiveMentorTechTest::JsonTranslator.from_file(File.dirname(__FILE__) + "/json_example.json")
+    translator = LiveMentorTechTest::JsonTranslator.from_file File.dirname(__FILE__) + "/json_example.json"
 
     expect(translator.doc.class).to be Array
     expect(translator.doc[0].class).to be Hash
     expect(translator.doc[0]["id"]).to eq(0)
+  end
+
+  it "raises an exception when an integer is given" do
+    expect {
+      LiveMentorTechTest::JsonTranslator.from_str "42"
+    }.to raise_error LiveMentorTechTest::Error
+  end
+
+  it "raises an exception when a float is given" do
+    expect {
+      LiveMentorTechTest::JsonTranslator.from_str "1.618"
+    }.to raise_error LiveMentorTechTest::Error
+  end
+
+  it "raises an exception when a string is given" do
+    expect {
+      LiveMentorTechTest::JsonTranslator.from_str '"Hello, world!"'
+    }.to raise_error LiveMentorTechTest::Error
   end
 end
