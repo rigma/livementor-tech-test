@@ -60,6 +60,14 @@ module LiveMentorTechTest
       @it = -1
     end
 
+    def to_csv
+      lines = read_lines.map do |line|
+        CSV::Row.new(self.headers, line)
+      end
+
+      CSV::Table.new(lines)
+    end
+
     private
 
     def extract_headers_from_hash(hash)

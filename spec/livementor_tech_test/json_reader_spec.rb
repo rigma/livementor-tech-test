@@ -141,4 +141,19 @@ EOS
       [21, 22, 23, "HellO", "WorlD", "21.618,22.718,23.141"]
     ])
   end
+
+  it "converts a JSON document into a CSV" do
+    json = <<EOS
+[
+  { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
+  { "a": 11, "b": 12, "c": 13, "d": { "e": "Hello", "f": "World" }, "g": [11.618, 12.718, 13.141] },
+  { "a": 21, "b": 22, "c": 23, "d": { "e": "HellO", "f": "WorlD" }, "g": [21.618, 22.718, 23.141] }
+]
+EOS
+    translator = LiveMentorTechTest::JsonReader::from_str json
+    csv = translator.to_csv
+
+    expect(csv.headers).to eq(["a", "b", "c", "d.e", "d.f", "g"])
+    expect(csv[0]["g"]).to eq("1.618,2.718,3.141")
+  end
 end
