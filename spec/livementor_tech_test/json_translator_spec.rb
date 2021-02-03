@@ -72,4 +72,12 @@ EOS
       LiveMentorTechTest::JsonTranslator.from_str '"Hello, world!"'
     }.to raise_error LiveMentorTechTest::Error
   end
+
+  it "parses CSV headers from a JSON object" do
+    translator = LiveMentorTechTest::JsonTranslator::from_str '{"a":1,"b":2,"c":{"d":3,"e":4},"f":"5","g":{"h":6}}'
+    expect(translator.headers).to eq(["a", "b", "c.d", "c.e", "f", "g.h"])
+
+    translator = LiveMentorTechTest::JsonTranslator::from_str '[{"a":1,"b":{"c":2,"d":3}},{"a":11,"b":{"c":12,"d":13},"e":14}]'
+    expect(translator.headers).to eq(["a", "b.c", "b.d", "e"])
+  end
 end

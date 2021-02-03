@@ -12,14 +12,16 @@ module LiveMentorTechTest
     def headers
       if @headers == nil
         if @doc.class == Array
-          @headers = @doc.map do |el|
-            puts el.inspect()
+          @headers = @doc.reduce([]) do |headers, el|
+            if el.class == Hash
+              headers.union(extract_headers_from_hash el)
+            else
+              # We are ignoring other object than hash sets for now
+              headers
+            end
           end
         elsif @doc.class == Hash
-          @headers = @doc.keys.map do |el|
-            puts el.inspect()
-          end
-        else
+          @headers = extract_headers_from_hash @doc
         end
       end
 
@@ -28,7 +30,17 @@ module LiveMentorTechTest
 
     private
 
-    def parse_header(hash)
+    def extract_headers_from_hash(hash)
+      headers = hash.keys.map do |key|
+        if hash[key].class == Hash
+          sub_keys = extract_headers_from_hash(hash[key])
+          sub_keys.map { |sub_key| "#{key}.#{sub_key}" }
+        else
+          key
+        end
+      end
+
+      headers.flatten
     end
 
     class << self
