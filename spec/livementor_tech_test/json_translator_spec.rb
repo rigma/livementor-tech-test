@@ -86,4 +86,22 @@ EOS
 
     expect(translator.read_line).to eq([1, 2, 3])
   end
+
+  it "retrieves multiple lines from a JSON array" do
+    json = <<EOS
+[
+  { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
+  { "a": 11, "b": 12, "c": 13, "d": { "e": "Hello", "f": "World" }, "g": [11.618, 12.718, 13.141] },
+  { "a": 21, "b": 22, "c": 23, "d": { "e": "HellO", "f": "WorlD" }, "g": [21.618, 22.718, 23.141] }
+]
+EOS
+
+    translator = LiveMentorTechTest::JsonTranslator::from_str json
+    line = translator.read_line
+    expect(line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
+    line = translator.read_line
+    expect(line).to eq([11, 12, 13, "Hello", "World", "11.618,12.718,13.141"])
+    line = translator.read_line
+    expect(line).to eq([21, 22, 23, "HellO", "WorlD", "21.618,22.718,23.141"])
+  end
 end
