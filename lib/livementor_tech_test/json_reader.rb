@@ -31,11 +31,19 @@ module LiveMentorTechTest
 
     def read_lines
       if @doc.class == Array
-        @doc.each do |el|
-          yield dig_line(el)
+        if block_given?
+          @doc.each do |el|
+            yield dig_line(el)
+          end
+        else
+          @doc.map { |el| dig_line(el) }
         end
       else
-        yield dig_line(@doc)
+        if block_given?
+          yield dig_line(@doc)
+        else
+          dig_line(@doc)
+        end
       end
     end
 
