@@ -7,6 +7,7 @@ module LiveMentorTechTest
 
     def initialize(doc)
       @doc = doc
+      @it = 0
     end
 
     def headers
@@ -28,6 +29,25 @@ module LiveMentorTechTest
       @headers
     end
 
+    def read_line
+      if !block_given?
+        if @doc.class == Array
+          return dig_line(@doc[@it])
+          @it += 1
+        else
+          return dig_line(@doc)
+        end
+      end
+
+      if @doc.class == Array
+        @doc.each do |el|
+          yield dig_line(hash)
+        end
+      else
+        yield dig_line(@doc)
+      end
+    end
+
     private
 
     def extract_headers_from_hash(hash)
@@ -41,6 +61,17 @@ module LiveMentorTechTest
       end
 
       headers.flatten
+    end
+
+    def dig_line(hash)
+      if hash.class != Hash
+        raise LiveMentorTechTest::Error
+      end
+
+      self.headers.map do |header|
+        nested_path = header.split(".")
+        hash.dig(*nested_path)
+      end
     end
 
     class << self

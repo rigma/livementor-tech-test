@@ -80,4 +80,10 @@ EOS
     translator = LiveMentorTechTest::JsonTranslator::from_str '[{"a":1,"b":{"c":2,"d":3}},{"a":11,"b":{"c":12,"d":13},"e":14}]'
     expect(translator.headers).to eq(["a", "b.c", "b.d", "e"])
   end
+
+  it "retrieves a line from JSON representation" do
+    translator = LiveMentorTechTest::JsonTranslator::from_str '{"a":1,"b":{"c":2,"d":3}}'
+
+    expect(translator.read_line).to eq([1, 2, 3])
+  end
 end
