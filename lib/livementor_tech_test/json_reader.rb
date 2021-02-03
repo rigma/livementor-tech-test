@@ -55,6 +55,10 @@ module LiveMentorTechTest
     private
 
     def extract_headers_from_hash(hash)
+      if hash.class != Hash
+        raise LiveMentorTechTest::Error
+      end
+
       headers = hash.keys.map do |key|
         if hash[key].class == Hash
           sub_keys = extract_headers_from_hash(hash[key])
