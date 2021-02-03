@@ -29,22 +29,22 @@ module LiveMentorTechTest
       @headers
     end
 
-    def read_line
-      if !block_given?
-        if @doc.class == Array
-          return dig_line(@doc[@it])
-          @it += 1
-        else
-          return dig_line(@doc)
-        end
-      end
-
+    def read_lines
       if @doc.class == Array
         @doc.each do |el|
-          yield dig_line(hash)
+          yield dig_line(el)
         end
       else
         yield dig_line(@doc)
+      end
+    end
+
+    def read_line
+      if @doc.class == Array
+        return dig_line(@doc[@it])
+        @it += 1
+      else
+        return dig_line(@doc)
       end
     end
 
