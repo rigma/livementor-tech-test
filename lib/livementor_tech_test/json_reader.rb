@@ -2,7 +2,7 @@ require 'csv'
 require 'json'
 
 module LiveMentorTechTest
-  class JsonTranslator
+  class JsonReader
     attr_reader :doc
 
     def initialize(doc)
@@ -87,7 +87,7 @@ module LiveMentorTechTest
           raise LiveMentorTechTest::Error
         end
 
-        JsonTranslator.new(doc)
+        JsonReader.new(doc)
       end
 
       def from_str(str)
@@ -96,7 +96,7 @@ module LiveMentorTechTest
           raise LiveMentorTechTest::Error
         end
 
-        JsonTranslator.new(doc)
+        JsonReader.new(doc)
       end
     end
   end

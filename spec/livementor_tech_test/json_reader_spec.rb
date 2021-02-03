@@ -1,4 +1,4 @@
-RSpec.describe LiveMentorTechTest::JsonTranslator do
+RSpec.describe LiveMentorTechTest::JsonReader do
   it "parses a JSON string" do
     str = <<EOS
 [
@@ -41,14 +41,14 @@ RSpec.describe LiveMentorTechTest::JsonTranslator do
   }
 ]
 EOS
-    translator = LiveMentorTechTest::JsonTranslator.from_str str
+    translator = LiveMentorTechTest::JsonReader.from_str str
 
     expect(translator.doc.class).to be Array
     expect(translator.doc[0].class).to be Hash
   end
 
   it "parses a JSON file" do
-    translator = LiveMentorTechTest::JsonTranslator.from_file File.dirname(__FILE__) + "/json_example.json"
+    translator = LiveMentorTechTest::JsonReader.from_file File.dirname(__FILE__) + "/json_example.json"
 
     expect(translator.doc.class).to be Array
     expect(translator.doc[0].class).to be Hash
@@ -57,32 +57,32 @@ EOS
 
   it "raises an exception when an integer is given" do
     expect {
-      LiveMentorTechTest::JsonTranslator.from_str "42"
+      LiveMentorTechTest::JsonReader.from_str "42"
     }.to raise_error LiveMentorTechTest::Error
   end
 
   it "raises an exception when a float is given" do
     expect {
-      LiveMentorTechTest::JsonTranslator.from_str "1.618"
+      LiveMentorTechTest::JsonReader.from_str "1.618"
     }.to raise_error LiveMentorTechTest::Error
   end
 
   it "raises an exception when a string is given" do
     expect {
-      LiveMentorTechTest::JsonTranslator.from_str '"Hello, world!"'
+      LiveMentorTechTest::JsonReader.from_str '"Hello, world!"'
     }.to raise_error LiveMentorTechTest::Error
   end
 
   it "parses CSV headers from a JSON object" do
-    translator = LiveMentorTechTest::JsonTranslator::from_str '{"a":1,"b":2,"c":{"d":3,"e":4},"f":"5","g":{"h":6}}'
+    translator = LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":2,"c":{"d":3,"e":4},"f":"5","g":{"h":6}}'
     expect(translator.headers).to eq(["a", "b", "c.d", "c.e", "f", "g.h"])
 
-    translator = LiveMentorTechTest::JsonTranslator::from_str '[{"a":1,"b":{"c":2,"d":3}},{"a":11,"b":{"c":12,"d":13},"e":14}]'
+    translator = LiveMentorTechTest::JsonReader::from_str '[{"a":1,"b":{"c":2,"d":3}},{"a":11,"b":{"c":12,"d":13},"e":14}]'
     expect(translator.headers).to eq(["a", "b.c", "b.d", "e"])
   end
 
   it "retrieves a line from JSON representation" do
-    translator = LiveMentorTechTest::JsonTranslator::from_str '{"a":1,"b":{"c":2,"d":3}}'
+    translator = LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":{"c":2,"d":3}}'
 
     expect(translator.read_line).to eq([1, 2, 3])
   end
@@ -95,7 +95,7 @@ EOS
   { "a": 21, "b": 22, "c": 23, "d": { "e": "HellO", "f": "WorlD" }, "g": [21.618, 22.718, 23.141] }
 ]
 EOS
-    translator = LiveMentorTechTest::JsonTranslator::from_str json
+    translator = LiveMentorTechTest::JsonReader::from_str json
 
     line = translator.read_line
     expect(line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
@@ -113,7 +113,7 @@ EOS
   { "a": 21, "b": 22, "c": 23, "d": { "e": "HellO", "f": "WorlD" }, "g": [21.618, 22.718, 23.141] }
 ]
 EOS
-    translator = LiveMentorTechTest::JsonTranslator::from_str json
+    translator = LiveMentorTechTest::JsonReader::from_str json
 
     line = translator.read_line
     expect(line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
