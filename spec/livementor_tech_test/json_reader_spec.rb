@@ -142,7 +142,7 @@ EOS
     ])
   end
 
-  it "converts a JSON document into a CSV" do
+  it "converts a JSON document into a CSV table" do
     json = <<EOS
 [
   { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
@@ -155,5 +155,32 @@ EOS
 
     expect(csv.headers).to eq(["a", "b", "c", "d.e", "d.f", "g"])
     expect(csv[0]["g"]).to eq("1.618,2.718,3.141")
+  end
+
+  it "converts a JSON file into a CSV table" do
+    translator = LiveMentorTechTest::JsonReader::from_file File.dirname(__FILE__) + "/json_example.json"
+    csv = translator.to_csv
+
+    expect(csv.headers).to eq([
+      "id",
+      "email",
+      "tags",
+      "profiles.facebook.id",
+      "profiles.facebook.picture",
+      "profiles.twitter.id",
+      "profiles.twitter.picture"
+    ])
+    expect(csv[0]).to eq(CSV::Row.new(
+      csv.headers,
+      [
+        0,
+        "colleengriffith@quintity.com",
+        "consectetur,quis",
+        0,
+        "//fbcdn.com/a2244bc1-b10c-4d91-9ce8-184337c6b898.jpg",
+        0,
+        "//twcdn.com/ad9e8cd3-3133-423e-8bbf-0602e4048c22.jpg"
+      ]
+    ))
   end
 end
