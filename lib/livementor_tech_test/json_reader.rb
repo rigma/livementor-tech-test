@@ -20,12 +20,18 @@ module LiveMentorTechTest
     ##
     # Instanciates a new JSON reader which will read +doc+.
     #
-    # +doc+ must be a valid Ruby array or hash or a JsonReaderError will be raised.
+    # +doc+ must be a valid Ruby array or a JsonReaderError will be raised.
 
     def initialize(doc)
       # We ignore other objects than Array and Hash and we raise an error in this case
-      if doc.class != Array and doc.class != Hash
-        raise JsonReaderError, "A JSON array or object must be provided to the JSON reader"
+      if doc.class != Array
+        raise JsonReaderError, "A JSON array must be provided to the JSON reader"
+      end
+
+      doc.each do |el|
+        if el.class != Hash
+          raise JsonReaderError, "The provided JSON array must only contains JSON objects"
+        end
       end
 
       @doc = doc
@@ -40,18 +46,14 @@ module LiveMentorTechTest
 
     def headers
       if @headers == nil
-        if @doc.class == Array
-          @headers = @doc.reduce([]) do |headers, el|
-            if el.class == Hash
-              headers.union extract_headers_from_hash(el)
-            else
-              # We are ignoring other object than hash sets for now
-              # We'll raise an error if we find something else
-              raise JsonReaderError, "Your JSON array is not only composed of JSON objects"
-            end
+        @headers = @doc.reduce([]) do |headers, el|
+          if el.class == Hash
+            headers.union extract_headers_from_hash(el)
+          else
+            # We are ignoring other object than hash sets for now
+            # We'll raise an error if we find something else
+            raise JsonReaderError, "Your JSON array is not only composed of JSON objects"
           end
-        elsif @doc.class == Hash
-          @headers = extract_headers_from_hash(@doc)
         end
       end
 
@@ -67,45 +69,24 @@ module LiveMentorTechTest
     # +into_csv_row+:: Returns read line in a CSV::Row object instead of an Array.
 
     def read_line(into_csv_row = false)
-      if @doc.class == Array
-        if @it >= @doc.size
-          raise JsonReaderError, "JSON document end is already reached"
-        end
-
-        @it += 1
-        dig_line(@doc[@it], into_csv_row)
-      else
-        dig_line(@doc, into_csv_row)
+      if @it >= @doc.size
+        raise JsonReaderError, "JSON document end is already reached"
       end
+
+      @it += 1
+      dig_line(@doc[@it], into_csv_row)
     end
 
     ##
-    # Read all the lines contained into the JSON document. This method can either be used
-    # with or without a Ruby block. If a block is provided, it will be called with the
-    # current parsed line as argument of the block.
-    #
-    # Otherwise, all lines will be returned into an array.
+    # Read all the lines contained into the JSON document. All lines will be returned
+    # into an array.
     #
     # = Parameters
     #
     # +into_csv_row+:: Returns read lines in a CSV::Row object instead of an Array.
 
-    def read_lines(into_csv_row = false, &block) # :yields: line
-      if @doc.class == Array
-        if block_given?
-          @doc.each do |el|
-            block dig_line(el)
-          end
-        else
-          @doc.map { |el| dig_line(el) }
-        end
-      else
-        if block_given?
-          block dig_line(@doc)
-        else
-          [ dig_line(@doc) ]
-        end
-      end
+    def read_lines(into_csv_row = false)
+      @doc.map { |el| dig_line(el, into_csv_row) }
     end
 
     ##
@@ -119,11 +100,7 @@ module LiveMentorTechTest
     # Exports the JSON document read into a CSV::Table object.
 
     def to_csv
-      lines = read_lines.map do |line|
-        CSV::Row.new(self.headers, line)
-      end
-
-      CSV::Table.new(lines)
+      CSV::Table.new read_lines(true)
     end
 
     class << self
@@ -137,7 +114,7 @@ module LiveMentorTechTest
 
       def from_file(path)
         doc = JSON.load_file(path)
-        if doc.class != Array and doc.class != Hash
+        if doc.class != Array
           raise JsonReaderError, "Parsed JSON document is not a JSON object, nor a JSON array"
         end
 
@@ -154,7 +131,7 @@ module LiveMentorTechTest
 
       def from_str(str)
         doc = JSON.parse(str)
-        if doc.class != Array and doc.class != Hash
+        if doc.class != Array
           raise JsonReaderError, "Parsed JSON document is not a JSON object, nor a JSON array"
         end
 

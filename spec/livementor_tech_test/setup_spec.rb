@@ -1,6 +1,6 @@
 RSpec.describe LiveMentorTechTest do
   it "parses a JSON representation into a CSV one" do
-    csv = LiveMentorTechTest::json2csv '{"a":1,"b":2,"c":{"d":["hello", "world"],"e":{"f":3,"g":4.1}}}'
+    csv = LiveMentorTechTest::json2csv '[{"a":1,"b":2,"c":{"d":["hello", "world"],"e":{"f":3,"g":4.1}}}]'
 
     expect(csv).to eq(%{a,b,c.d,c.e.f,c.e.g
 1,2,"hello,world",3,4.1

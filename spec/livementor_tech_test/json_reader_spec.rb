@@ -55,45 +55,48 @@ EOS
     expect(translator.doc[0]["id"]).to eq(0)
   end
 
-  it "raises an exception when an integer is given" do
+  it "raises an error when a hash is given" do
+    expect {
+      LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":2,"c":{"d":3,"e":4},"f":"5","g":{"h":6}}'
+    }.to raise_error LiveMentorTechTest::JsonReaderError
+  end
+
+  it "raises an error when an integer is given" do
     expect {
       LiveMentorTechTest::JsonReader.from_str "42"
     }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
-  it "raises an exception when a float is given" do
+  it "raises an error when a float is given" do
     expect {
       LiveMentorTechTest::JsonReader.from_str "1.618"
     }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
-  it "raises an exception when a string is given" do
+  it "raises an error when a string is given" do
     expect {
       LiveMentorTechTest::JsonReader.from_str '"Hello, world!"'
     }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
-  it "parses CSV headers from a JSON object" do
-    translator = LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":2,"c":{"d":3,"e":4},"f":"5","g":{"h":6}}'
-    expect(translator.headers).to eq(["a", "b", "c.d", "c.e", "f", "g.h"])
+  it "raises an error if the JSON array is not only composed of objects" do
+    expect {
+      LiveMentorTechTest::JsonReader::from_str '[{"a":1}, true, 42, 1.618]'
+    }.to raise_error LiveMentorTechTest::JsonReaderError
+  end
 
+  it "parses CSV headers from a JSON document" do
     translator = LiveMentorTechTest::JsonReader::from_str '[{"a":1,"b":{"c":2,"d":3}},{"a":11,"b":{"c":12,"d":13},"e":14}]'
     expect(translator.headers).to eq(["a", "b.c", "b.d", "e"])
   end
 
-  it "does not parses CSV headers from a JSON array not only composed of objects" do
-    translator = LiveMentorTechTest::JsonReader::from_str '[{"a":1}, true, 42, 1.618]'
-
-    expect { translator.headers }.to raise_error LiveMentorTechTest::JsonReaderError
-  end
-
-  it "reads a line from JSON representation" do
-    translator = LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":{"c":2,"d":3}}'
+  it "reads a line from a JSON document" do
+    translator = LiveMentorTechTest::JsonReader::from_str '[{"a":1,"b":{"c":2,"d":3}}]'
 
     expect(translator.read_line).to eq([1, 2, 3])
   end
 
-  it "reads multiple lines from a JSON array" do
+  it "reads multiple lines from a JSON document" do
     json = <<EOS
 [
   { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
@@ -124,7 +127,7 @@ EOS
     ))
   end
 
-  it "rewinds a translator to the beginning of a JSON document" do
+  it "rewinds a reader to the beginning of a JSON document" do
     json = <<EOS
 [
   { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
