@@ -81,6 +81,12 @@ EOS
     expect(translator.headers).to eq(["a", "b.c", "b.d", "e"])
   end
 
+  it "does not parses CSV headers from a JSON array not only composed of objects" do
+    translator = LiveMentorTechTest::JsonReader::from_str '[{"a":1}, true, 42, 1.618]'
+
+    expect { translator.headers }.to raise_error LiveMentorTechTest::JsonReaderError
+  end
+
   it "retrieves a line from JSON representation" do
     translator = LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":{"c":2,"d":3}}'
 
@@ -140,6 +146,20 @@ EOS
       [11, 12, 13, "Hello", "World", "11.618,12.718,13.141"],
       [21, 22, 23, "HellO", "WorlD", "21.618,22.718,23.141"]
     ])
+  end
+
+  it "read lines with inconsistent headers" do
+    json = <<EOS
+[
+  { "a": 1, "b": 2, "c": 3 },
+  { "a": 11, "c": 13, "d": { "e": 14, "f": [1, "world"] } }
+]
+EOS
+    translator = LiveMentorTechTest::JsonReader::from_str json
+
+    expect(translator.headers).to eq(["a", "b", "c", "d.e", "d.f"])
+    expect(translator.read_line).to eq([1, 2, 3, nil, nil])
+    expect(translator.read_line).to eq([11, nil, 13, 14, "1,world"])
   end
 
   it "converts a JSON document into a CSV table" do
