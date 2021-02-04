@@ -6,6 +6,7 @@ require "livementor_tech_test/version"
 Gem::Specification.new do |spec|
   spec.name          = "livementor-tech-test"
   spec.version       = LiveMentorTechTest::VERSION
+  spec.licenses      = ["UNLICENSE"]
   spec.authors       = ["rigma"]
   spec.email         = ["rigbuntu@gmail.com"]
 
