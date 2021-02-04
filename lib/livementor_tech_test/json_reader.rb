@@ -15,14 +15,15 @@ module LiveMentorTechTest
         if @doc.class == Array
           @headers = @doc.reduce([]) do |headers, el|
             if el.class == Hash
-              headers.union(extract_headers_from_hash el)
+              headers.union extract_headers_from_hash(el)
             else
               # We are ignoring other object than hash sets for now
-              headers
+              # We'll raise an error if we find something else
+              raise JsonReaderError, "Your JSON array is not only composed of JSON objects"
             end
           end
         elsif @doc.class == Hash
-          @headers = extract_headers_from_hash @doc
+          @headers = extract_headers_from_hash(@doc)
         end
       end
 
@@ -49,10 +50,14 @@ module LiveMentorTechTest
 
     def read_line
       if @doc.class == Array
+        if @it >= @doc.size
+          raise JsonReaderError, "JSON document end is already reached"
+        end
+
         @it += 1
-        return dig_line(@doc[@it])
+        dig_line(@doc[@it])
       else
-        return dig_line(@doc)
+        dig_line(@doc)
       end
     end
 
@@ -72,7 +77,7 @@ module LiveMentorTechTest
 
     def extract_headers_from_hash(hash)
       if hash.class != Hash
-        raise LiveMentorTechTest::Error
+        raise JsonReaderError, "Provided parameter is not a Ruby Hash"
       end
 
       headers = hash.keys.map do |key|
@@ -89,7 +94,7 @@ module LiveMentorTechTest
 
     def dig_line(hash)
       if hash.class != Hash
-        raise LiveMentorTechTest::Error
+        raise JsonReaderError, "Provided parameter is not a Ruby Hash"
       end
 
       self.headers.map do |header|
@@ -104,7 +109,7 @@ module LiveMentorTechTest
       def from_file(path)
         doc = JSON.load_file(path)
         if doc.class != Array and doc.class != Hash
-          raise LiveMentorTechTest::Error
+          raise JsonReaderError, "Parsed JSON document is not a JSON object, nor a JSON array"
         end
 
         JsonReader.new(doc)
@@ -113,11 +118,13 @@ module LiveMentorTechTest
       def from_str(str)
         doc = JSON.parse(str)
         if doc.class != Array and doc.class != Hash
-          raise LiveMentorTechTest::Error
+          raise JsonReaderError, "Parsed JSON document is not a JSON object, nor a JSON array"
         end
 
         JsonReader.new(doc)
       end
     end
   end
+
+  class JsonReaderError < StandardError; end
 end

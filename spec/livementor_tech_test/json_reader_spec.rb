@@ -58,19 +58,19 @@ EOS
   it "raises an exception when an integer is given" do
     expect {
       LiveMentorTechTest::JsonReader.from_str "42"
-    }.to raise_error LiveMentorTechTest::Error
+    }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
   it "raises an exception when a float is given" do
     expect {
       LiveMentorTechTest::JsonReader.from_str "1.618"
-    }.to raise_error LiveMentorTechTest::Error
+    }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
   it "raises an exception when a string is given" do
     expect {
       LiveMentorTechTest::JsonReader.from_str '"Hello, world!"'
-    }.to raise_error LiveMentorTechTest::Error
+    }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
   it "parses CSV headers from a JSON object" do
