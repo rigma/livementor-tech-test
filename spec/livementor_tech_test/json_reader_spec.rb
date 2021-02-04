@@ -87,13 +87,13 @@ EOS
     expect { translator.headers }.to raise_error LiveMentorTechTest::JsonReaderError
   end
 
-  it "retrieves a line from JSON representation" do
+  it "reads a line from JSON representation" do
     translator = LiveMentorTechTest::JsonReader::from_str '{"a":1,"b":{"c":2,"d":3}}'
 
     expect(translator.read_line).to eq([1, 2, 3])
   end
 
-  it "retrieves multiple lines from a JSON array" do
+  it "reads multiple lines from a JSON array" do
     json = <<EOS
 [
   { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
@@ -103,12 +103,25 @@ EOS
 EOS
     translator = LiveMentorTechTest::JsonReader::from_str json
 
-    line = translator.read_line
-    expect(line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
-    line = translator.read_line
-    expect(line).to eq([11, 12, 13, "Hello", "World", "11.618,12.718,13.141"])
-    line = translator.read_line
-    expect(line).to eq([21, 22, 23, "HellO", "WorlD", "21.618,22.718,23.141"])
+    expect(translator.read_line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
+    expect(translator.read_line).to eq([11, 12, 13, "Hello", "World", "11.618,12.718,13.141"])
+    expect(translator.read_line).to eq([21, 22, 23, "HellO", "WorlD", "21.618,22.718,23.141"])
+  end
+
+  it "reads a line from JSON representation and store it into a CSV::Row" do
+    json = <<EOS
+[
+  { "a": 1, "b": 2, "c": 3, "d": { "e": "hello", "f": "world" }, "g": [1.618, 2.718, 3.141] },
+  { "a": 11, "b": 12, "c": 13, "d": { "e": "Hello", "f": "World" }, "g": [11.618, 12.718, 13.141] },
+  { "a": 21, "b": 22, "c": 23, "d": { "e": "HellO", "f": "WorlD" }, "g": [21.618, 22.718, 23.141] }
+]
+EOS
+    translator = LiveMentorTechTest::JsonReader::from_str json
+
+    expect(translator.read_line(true)).to eq(CSV::Row.new(
+      translator.headers,
+      [1, 2, 3, "hello", "world", "1.618,2.718,3.141"]
+    ))
   end
 
   it "rewinds a translator to the beginning of a JSON document" do
@@ -121,14 +134,11 @@ EOS
 EOS
     translator = LiveMentorTechTest::JsonReader::from_str json
 
-    line = translator.read_line
-    expect(line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
-    line = translator.read_line
-    expect(line).to eq([11, 12, 13, "Hello", "World", "11.618,12.718,13.141"])
+    expect(translator.read_line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
+    expect(translator.read_line).to eq([11, 12, 13, "Hello", "World", "11.618,12.718,13.141"])
 
     translator.rewind
-    line = translator.read_line
-    expect(line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
+    expect(translator.read_line).to eq([1, 2, 3, "hello", "world", "1.618,2.718,3.141"])
   end
 
   it "read all the lines" do

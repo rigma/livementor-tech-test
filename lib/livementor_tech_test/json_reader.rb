@@ -61,17 +61,21 @@ module LiveMentorTechTest
     ##
     # Returns a line from the JSON document read. If the document is an array and that we
     # have reached the end of the document, a JsonReaderError will be raised.
+    #
+    # = Parameters
+    #
+    # +into_csv_row+:: Returns read line in a CSV::Row object instead of an Array.
 
-    def read_line
+    def read_line(into_csv_row = false)
       if @doc.class == Array
         if @it >= @doc.size
           raise JsonReaderError, "JSON document end is already reached"
         end
 
         @it += 1
-        dig_line(@doc[@it])
+        dig_line(@doc[@it], into_csv_row)
       else
-        dig_line(@doc)
+        dig_line(@doc, into_csv_row)
       end
     end
 
@@ -81,8 +85,12 @@ module LiveMentorTechTest
     # current parsed line as argument of the block.
     #
     # Otherwise, all lines will be returned into an array.
+    #
+    # = Parameters
+    #
+    # +into_csv_row+:: Returns read lines in a CSV::Row object instead of an Array.
 
-    def read_lines(&block) # :yields: line
+    def read_lines(into_csv_row = false, &block) # :yields: line
       if @doc.class == Array
         if block_given?
           @doc.each do |el|
@@ -122,6 +130,10 @@ module LiveMentorTechTest
       ##
       # Instanciates a new JsonReader which will read a JSON file located at +path+ on your
       # file system.
+      #
+      # = Parameters
+      #
+      # +path+:: The path to the JSON file to read.
 
       def from_file(path)
         doc = JSON.load_file(path)
@@ -135,6 +147,10 @@ module LiveMentorTechTest
       ##
       # Instanciates a new JsonReader which will read a JSON document stored into a string
       # representation.
+      #
+      # = Parameters
+      #
+      # +str+:: The string representation of the JSON document to read.
 
       def from_str(str)
         doc = JSON.parse(str)
@@ -150,6 +166,10 @@ module LiveMentorTechTest
 
     ##
     # Extracts the headers from a JSON object represented by a Ruby Hash.
+    #
+    # = Parameters
+    #
+    # +hash+:: The Ruby hash which will be used to extract headers.
 
     def extract_headers_from_hash(hash)
       # Raising an error if the provided parameter is not a Hash
@@ -179,14 +199,19 @@ module LiveMentorTechTest
 
     ##
     # Digs a CSV readable line from a JSON object represented into a Ruby hash.
+    #
+    # = Parameters
+    #
+    # +hash+:: The Ruby hash which will be used to dig the line.
+    # +into_csv_row+:: Returns the digged line in a CSV::Row object instead of an Array.
 
-    def dig_line(hash)
+    def dig_line(hash, into_csv_row = false)
       if hash.class != Hash
         raise JsonReaderError, "Provided parameter is not a Ruby Hash"
       end
 
       # We'll use the parsed headers from the JSON document to extract values
-      self.headers.map do |header|
+      line = self.headers.map do |header|
         # Forming the nested path that we'll be used to acces to the value
         nested_path = header.split(".")
 
@@ -197,6 +222,12 @@ module LiveMentorTechTest
         value = value.join(",") unless value.class != Array
 
         value
+      end
+
+      if into_csv_row
+        CSV::Row.new(self.headers, line)
+      else
+        line
       end
     end
   end
